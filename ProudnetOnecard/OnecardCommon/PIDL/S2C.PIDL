@@ -1,0 +1,13 @@
+﻿[marshaler(cs) = OnecardCommon.Marshaler]
+global S2C 3000
+{
+	ResponseLogin([in] OnecardCommon.User user);
+	ResponseEnter([in] int RoomNumber, [in] int playerID);
+
+	NotifyStart([in] int firstPlayerID, [in] OnecardCommon.GameCard firstCard);
+	ResponseDraw([in] List<OnecardCommon.GameCard> cards);
+	ChangeHand([in] int playerID, [in] int leftHand);
+	ChangeLastCard([in] OnecardCommon.GameCard card);
+	ChangeTurn([in] int playerID);
+	EndGame([in] int winnerID);
+}

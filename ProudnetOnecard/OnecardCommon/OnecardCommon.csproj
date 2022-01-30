@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="ProudDotNetClient">
+      <HintPath>C:\Program Files (x86)\Nettention\ProudNet\lib\DotNet\ProudDotNetClient.dll</HintPath>
+    </Reference>
+    <Reference Include="ProudDotNetServer">
+      <HintPath>C:\Program Files (x86)\Nettention\ProudNet\lib\DotNet\ProudDotNetServer.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
