@@ -35,6 +35,11 @@ namespace OnecardServer
 				.ToArray();
 			return users;
 		}
+		public int GetPlayerID(User user)
+        {
+			GameRoom room = ServerLauncher.RoomArray[user.RoomNumber];
+			return room.players.FindIndex(p => p.user.HostId == user.HostId);
+		}
 		private void setDeck()
 		{
 			GameCard[] deck = new GameCard[53];
@@ -76,27 +81,20 @@ namespace OnecardServer
 		}
         public bool PlayHand(int hand)
 		{
-			Console.WriteLine("Player {0} {1}", turn, hand);
 			int currentHand = players[turn].hand.Count();
 			if (hand < 0 || hand >= currentHand)
 				return false;
-			Console.WriteLine("Playhand 1");
 
 			GameCard gameCard = players[turn].hand[hand];
 
-			Console.WriteLine("Playhand 2");
 			bool isMatched = getLastCard().Match(gameCard);
-			Console.WriteLine("Playhand 3");
 			if (isMatched)
 			{
-				Console.WriteLine("Playhand 4");
 				usedDeck.Push(gameCard);
-				Console.WriteLine("Playhand 5");
 				players[turn].hand.RemoveAt(hand);
 
 				return true;
 			}
-			Console.WriteLine("Playhand 6");
 			return false;
 
 		}
@@ -111,26 +109,5 @@ namespace OnecardServer
 			return true;
 		}
 
-
-		public void tempDrawHand()
-		{
-			DrawHand();
-			this.setNextTurn();
-			Console.WriteLine("Draw");
-		}
-		public void tempEnterPlayer()
-		{
-			//EnterPlayer();
-			Console.WriteLine("Player enter");
-		}
-		public void tempPlayHand(int hand)
-		{
-			bool success = this.PlayHand(hand);
-            if (success)
-            {
-				setNextTurn();
-				Console.WriteLine("Turn end");
-			}
-		}
 	}
 }

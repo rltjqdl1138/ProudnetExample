@@ -41,17 +41,18 @@ namespace OnecardServer.process
                 return true;
 
             GameRoom room = ServerLauncher.RoomArray[RoomNumber];
-            int turn = room.players.FindIndex(p => p.user.HostId == remote);
-            if (turn == room.turn)
+            int playerID = room.GetPlayerID(user);
+
+            if (playerID == room.turn)
             {
-                GamePlayer player = room.players[turn];
+                GamePlayer player = room.players[playerID];
                 int hand = player.hand.FindIndex(p => p.toNumber() == card.toNumber());
                 bool isSuccess = room.PlayHand(hand);
                 if (isSuccess)
                 {
                     var hosts = room.GetHostIDs();
                     S2CProxy.ChangeLastCard(hosts, rmiContext, room.getLastCard());
-                    S2CProxy.ChangeHand(hosts, rmiContext, turn, room.players[turn].hand.Count());
+                    S2CProxy.ChangeHand(hosts, rmiContext, playerID, player.hand.Count());
                     room.setNextTurn();
                     S2CProxy.ChangeTurn(hosts, rmiContext, room.turn);
                 }
@@ -60,18 +61,29 @@ namespace OnecardServer.process
         }
         static public bool DrawCard(HostID remote, RmiContext rmiContext)
         {
-
             ServerLauncher.UserList.TryGetValue(remote, out User user);
             int RoomNumber = user.RoomNumber;
-            if (RoomNumber == 0) return true;
+            if (RoomNumber == 0)
+                return true;
 
             GameRoom room = ServerLauncher.RoomArray[RoomNumber];
-            int turn = room.players.FindIndex(p => p.user.HostId == remote);
-            if (turn == room.turn)
-            {
+            int playerID = room.GetPlayerID(user);
 
+            if (playerID == room.turn)
+            {
+                GamePlayer player = room.players[playerID];
+                int count = room.DrawHand();
+                if (count > 0)
+                {
+                    var hosts = room.GetHostIDs();
+                    S2CProxy.ChangeHand(hosts, rmiContext, playerID, player.hand.Count());
+                    S2CProxy.ResponseDraw(player.user.HostId, rmiContext, player.hand);
+                    room.setNextTurn();
+                    S2CProxy.ChangeTurn(hosts, rmiContext, room.turn);
+                }
             }
-            
+            return true;
+
             return true;
         }
         static public bool ChangeShape(HostID remote, RmiContext rmiContext, int shape)

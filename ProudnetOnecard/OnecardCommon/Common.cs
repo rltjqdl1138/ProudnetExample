@@ -70,11 +70,20 @@ namespace OnecardCommon
 				case 4:
 					shape = "◆";
 					break;
+				default:
+					shape = "■";
+					break;
             }
             switch (this.number)
             {
+				case 0:
+					number = " ";
+					break;
 				case 1:
 					number = "A";
+					break;
+				case 10:
+					number = "T";
 					break;
 				case 11:
 					number = "J";

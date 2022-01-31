@@ -65,12 +65,12 @@ namespace Client
                     {
                         players[i] = new GamePlayer();
                         for(int j=0; j<7; j++)
-                            players[i].hand.Append(new GameCard());
+                            players[i].hand.Add(new GameCard());
                     }
 
-                    Console.WriteLine("Game Start!");
                     printHand();
                 }
+                Draw();
                 return true;
             };
             S2CStub.ResponseDraw = (HostID remote, RmiContext rmiContext, List<GameCard> hand) =>
@@ -78,18 +78,15 @@ namespace Client
 
                 lock (g_critSec)
                 {
-                    for (int i = 0; i < hand.Count; i++)
-                    {
-                        GameCard card = hand[i];
-                        
-                        gameCards.Add(card);
-                    }
+                    gameCards = hand;
                 }
+                Draw();
                 return true;
             };
             S2CStub.ChangeHand = (HostID remote, RmiContext rmiContext,int playerID, int count) =>
             {
                 players[playerID].hand = new List<GameCard>(count);
+                Draw();
                 return true;
             };
             S2CStub.ChangeLastCard = (HostID remote, RmiContext rmiContext, GameCard card) =>
@@ -98,7 +95,7 @@ namespace Client
                 if(gameCards[Selected].toNumber() == card.toNumber())
                     gameCards.RemoveAt(Selected);
 
-                Console.WriteLine("Card:{0}\n", LastCard.toString());
+                Draw();
                 return true;
             };
             S2CStub.ChangeTurn = (HostID remote, RmiContext rmiContext, int playerID) =>
@@ -109,9 +106,9 @@ namespace Client
                     Console.WriteLine("My turn!");
                     printHand();
                 }
+                Draw();
                 return true;
             };
-            
         }
         static void InitializeHandler()
         {
@@ -157,11 +154,52 @@ namespace Client
             cp.serverPort = (ushort)Vars.m_serverPort;
             netClient.Connect(cp);
         }
+        static void Draw()
+        {
+            Console.Clear();
+            if (!isPlaying)
+            {
+                Console.WriteLine("Ready..");
+                return;
+            }
+
+            Console.WriteLine("Player {0}'s turn", turn);
+            for(int i = 0; i < 4; i++)
+            {
+                Console.Write("{0} Player {1}: ", turn==i ? "▶":"  ",i);
+                if (PlayerID == i)
+                    printHand();
+                else
+                {
+                    for (int j = 0; j < players[i].hand.Count; j++)
+                        Console.Write("{0} ", players[i].hand[j].toString());
+                    Console.WriteLine("");
+                }
+            }
+            Console.WriteLine("\n\n\tCard:{0}\n\n", LastCard.toString());
+
+            printHand();
+            string select = "";
+            for(int i=0; i < Selected; i++)
+            {
+                select += "    ";
+            }
+            select += "▲";
+
+            Console.WriteLine(select);
+        }
+
         static void printHand()
         {
             for(int i=0; i<gameCards.Count; i++)
-                Console.WriteLine("{0}: {1}",i+1, gameCards[i].toString());
+                Console.Write("{0} ", gameCards[i].toString());
+            Console.WriteLine();
             
+        }
+        static void PlayCard()
+        {
+            if(turn == PlayerID)
+                C2SProxy.PlayCard(HostID.HostID_Server, RmiContext.ReliableSend, gameCards[Selected]);
         }
         static void Main(string[] args)
         {
@@ -217,9 +255,38 @@ namespace Client
 
             // Playing
             ConsoleKeyInfo keyinfo;
+            int i = 1;
             while (keepWorkerThread)
             {
-
+                if (Console.KeyAvailable)
+                {
+                    switch(Console.ReadKey(true).Key)
+                    {
+                        case ConsoleKey.Spacebar:
+                            if (!isPlaying)
+                                C2SProxy.Start(HostID.HostID_Server, RmiContext.ReliableSend);
+                            else
+                                C2SProxy.DrawCard(HostID.HostID_Server, RmiContext.ReliableSend);
+                            break;
+                        case ConsoleKey.UpArrow:
+                            break;
+                        case ConsoleKey.DownArrow:
+                            break;
+                        case ConsoleKey.LeftArrow:
+                            Selected--;
+                            Draw();
+                            break;
+                        case ConsoleKey.RightArrow:
+                            Selected++;
+                            Draw();
+                            break;
+                        case ConsoleKey.Enter:
+                            PlayCard();
+                            break;
+                    }
+                }
+                System.Threading.Thread.Sleep(30);
+                /*
                 keyinfo = Console.ReadKey();
                 if (!isPlaying)
                 {
@@ -277,7 +344,7 @@ namespace Client
                     case ConsoleKey.Spacebar:
                         C2SProxy.DrawCard(HostID.HostID_Server, RmiContext.ReliableSend);
                         break;
-                }
+                }*/
             }
 
             workerThread.Join();
