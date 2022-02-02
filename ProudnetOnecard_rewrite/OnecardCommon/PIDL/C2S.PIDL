@@ -1,0 +1,12 @@
+﻿[marshaler(cs) = OnecardCommon.Marshaler]
+global C2S 2000
+{
+	Login([in] String UserName);
+	EnterRoom([in] int RoomNumber);
+	LeaveRoom();
+
+	Start();
+	PlayCard([in] OnecardCommon.GameCard card);
+	DrawCard();
+	ChangeShape([in] int shape);
+}

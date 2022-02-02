@@ -102,25 +102,21 @@ namespace OnecardCommon
         }
 		public bool Match(GameCard card)
         {
-			//if (number > 2)
-			//	return this.shape == card.shape || this.number == card.number;
-			//else if (card.number > 2)
-			//	return false;
 			return this.shape == card.shape || this.number == card.number;
 		}
     }
 
 	public class GamePlayer
-    {
+	{
 		public User user;
 		public List<GameCard> hand = new List<GameCard>();
 		public GamePlayer()
-        {
+		{
 
-        }
+		}
 		public GamePlayer(User user)
-        {
+		{
 			this.user = user;
-        }
-    }
+		}
+	}
 }

@@ -5,29 +5,29 @@ namespace OnecardServer
 {
 	public class GameRoom
 	{
-		public int id;
 		public int status;
 		public int turn;
 
 		public List<GamePlayer> players = new List<GamePlayer>();
 
-		public GameCard lastCard = new GameCard();
 		public Stack<GameCard> usedDeck = new Stack<GameCard>();
 		public Stack<GameCard> unusedDeck = new Stack<GameCard>();
+		public GameCard lastCard = new GameCard();
 
 		public bool InitializeGame()
         {
 			if (status == 1 || players.Count < 2)
 				return false;
-			Console.WriteLine("Game Start!");
 			status = 1;
+			Console.WriteLine("Game Start!");
 
-			setDeck();
+			SetDeck();
 
 			SplitCard();
 			
 			return true;
 		}
+
 		public HostID[] GetHostIDs()
         {
 			HostID[] users = players
@@ -40,7 +40,7 @@ namespace OnecardServer
 			GameRoom room = ServerLauncher.RoomArray[user.RoomNumber];
 			return room.players.FindIndex(p => p.user.HostId == user.HostId);
 		}
-		private void setDeck()
+		private void SetDeck()
 		{
 			GameCard[] deck = new GameCard[53];
 			Random random = new Random();
@@ -56,25 +56,23 @@ namespace OnecardServer
 
 			MergeDeck();
 		}
-
 		private void MergeDeck()
 		{
 			GameCard[] deck = new GameCard[53];
 			Random random = new Random();
 
-			while (usedDeck.Count() > 0)
+			while( usedDeck.Count() > 0)
 			{
 				int rand = random.Next(0, 52);
 				if (deck[rand] == null)
 					deck[rand] = usedDeck.Pop();
-			}
-			for (int i = 0; i < deck.Length; i++)
-			{
+            }
+			for(int i=0; i<deck.Length; i++)
+            {
 				if (deck[i] == null) continue;
 				unusedDeck.Push(deck[i]);
-			}
+            }
 		}
-
 		private void SplitCard()
 		{
 			for (int j = 0; j < 7; j++)
@@ -82,6 +80,7 @@ namespace OnecardServer
 					players[i].hand.Add(unusedDeck.Pop());
 
 			usedDeck.Push(unusedDeck.Pop());
+			lastCard = usedDeck.Peek();
 		}
 
 		public GameCard getLastCard()
@@ -120,7 +119,6 @@ namespace OnecardServer
 				return true;
 			}
 			return false;
-
 		}
 		public bool EnterPlayer(User user)
         {

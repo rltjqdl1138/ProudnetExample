@@ -67,8 +67,6 @@ namespace Client
                         for(int j=0; j<7; j++)
                             players[i].hand.Add(new GameCard());
                     }
-
-                    printHand();
                 }
                 Draw();
                 return true;
@@ -103,10 +101,16 @@ namespace Client
                 turn = playerID;
                 if (turn == PlayerID)
                 {
-                    Console.WriteLine("My turn!");
-                    printHand();
                 }
                 Draw();
+                return true;
+            };
+            S2CStub.EndGame = (HostID remote, RmiContext rmiContext, int winnerID) =>
+            {
+                isPlaying = false;
+                Draw();
+                Console.WriteLine("\nPlayer {0} Win!", winnerID);
+
                 return true;
             };
         }
@@ -164,23 +168,16 @@ namespace Client
             }
 
             Console.WriteLine("Player {0}'s turn", turn);
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
-                Console.Write("{0} Player {1}: ", turn==i ? "▶":"  ",i);
-                if (PlayerID == i)
-                    printHand();
-                else
-                {
-                    for (int j = 0; j < players[i].hand.Count; j++)
-                        Console.Write("{0} ", players[i].hand[j].toString());
-                    Console.WriteLine("");
-                }
+                Console.Write("{0} Player {1}: ", turn == i ? "▶" : "  ", i);
+                printHand(i);
             }
             Console.WriteLine("\n\n\tCard:{0}\n\n", LastCard.toString());
 
-            printHand();
+            printHand(PlayerID);
             string select = "";
-            for(int i=0; i < Selected; i++)
+            for (int i = 0; i < Selected; i++)
             {
                 select += "    ";
             }
@@ -189,12 +186,14 @@ namespace Client
             Console.WriteLine(select);
         }
 
-        static void printHand()
+        static void printHand(int playerID)
         {
-            for(int i=0; i<gameCards.Count; i++)
-                Console.Write("{0} ", gameCards[i].toString());
-            Console.WriteLine();
-            
+            var Cards = playerID == PlayerID ? gameCards : players[playerID].hand;
+            string output = "";
+            for (int i = 0; i < Cards.Count; i++)
+                output += gameCards[i].toString() + "  ";
+
+            Console.WriteLine(output);
         }
         static void PlayCard()
         {
@@ -273,8 +272,11 @@ namespace Client
                         case ConsoleKey.DownArrow:
                             break;
                         case ConsoleKey.LeftArrow:
-                            Selected--;
-                            Draw();
+                            if(Selected > 0)
+                            {
+                                Selected--;
+                                Draw();
+                            }
                             break;
                         case ConsoleKey.RightArrow:
                             Selected++;

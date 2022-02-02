@@ -24,7 +24,7 @@ namespace OnecardServer.process
             if (!isSuccess)
                 return true;
 
-            S2CProxy.NotifyStart(room.GetHostIDs(), RmiContext.ReliableSend, 0, room.getLastCard());
+            S2CProxy.NotifyStartGame(room.GetHostIDs(), RmiContext.ReliableSend, 0, room.getLastCard());
             for(int i = 0; i < room.players.Count; i++)
             {
                 Console.WriteLine("Handling... {0}", i);
@@ -57,7 +57,7 @@ namespace OnecardServer.process
                     if (countHand == 1)
                     {
                         room.EndGame();
-                        S2CProxy.EndGame(hosts, rmiContext, playerID);
+                        S2CProxy.NotifyEndGame(hosts, rmiContext, playerID);
                     }
                     else
                     {

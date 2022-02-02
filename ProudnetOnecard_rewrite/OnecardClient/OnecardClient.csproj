@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="RMI\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OnecardCommon\OnecardCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ProudDotNetClient">
+      <HintPath>C:\Program Files (x86)\Nettention\ProudNet\lib\DotNet\ProudDotNetClient.dll</HintPath>
+    </Reference>
+    <Reference Include="ProudDotNetServer">
+      <HintPath>C:\Program Files (x86)\Nettention\ProudNet\lib\DotNet\ProudDotNetServer.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
