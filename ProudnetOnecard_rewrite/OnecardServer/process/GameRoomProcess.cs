@@ -42,7 +42,7 @@ namespace OnecardServer.process
             GameRoom room = ServerLauncher.RoomArray[RoomNumber];
             int playerID = room.GetPlayerID(user);
 
-            if (playerID != room.turn)
+            if (playerID != room.getCurrentTurn())
                 return true;
             
             GamePlayer player = room.players[playerID];
@@ -64,7 +64,7 @@ namespace OnecardServer.process
             else
             {
                 room.setNextTurn();
-                S2CProxy.ChangeTurn(hosts, rmiContext, room.turn);
+                S2CProxy.ChangeTurn(hosts, rmiContext, room.getCurrentTurn());
             }
             
             return true;
@@ -79,7 +79,7 @@ namespace OnecardServer.process
             GameRoom room = ServerLauncher.RoomArray[RoomNumber];
             int playerID = room.GetPlayerID(user);
 
-            if (playerID != room.turn)
+            if (playerID != room.getCurrentTurn())
                 return true;
 
             GamePlayer player = room.players[playerID];
@@ -90,7 +90,7 @@ namespace OnecardServer.process
                 S2CProxy.ChangeHand(hosts, rmiContext, playerID, player.hand.Count());
                 S2CProxy.ResponseDraw(player.user.HostId, rmiContext, player.hand);
                 room.setNextTurn();
-                S2CProxy.ChangeTurn(hosts, rmiContext, room.turn);
+                S2CProxy.ChangeTurn(hosts, rmiContext, room.getCurrentTurn());
             }
 
             return true;

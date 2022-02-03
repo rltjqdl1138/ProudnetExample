@@ -31,7 +31,6 @@ namespace OnecardServer.process
             return true;
         }
 
-        // * 추가 * //
         static public bool EnterRoom(HostID remote, RmiContext rmiContext, int RoomNumber)
         {
             GameRoom room = ServerLauncher.RoomArray[RoomNumber];
@@ -49,7 +48,7 @@ namespace OnecardServer.process
 
             string message = string.Format("{0} entered to Room {1}", user.UserName, user.RoomNumber);
 
-            // Notify To Room 
+            // TODO: Notify To Room 
 
             S2CProxy.ResponseEnter(remote, rmiContext, RoomNumber, room.players.Count() - 1);
             Console.WriteLine(message);

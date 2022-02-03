@@ -55,24 +55,6 @@ namespace OnecardServer
             InitializeStub();
             InitialzieServerParameter();
             RunLoop = true;
-
-            GameRoom tempRoom = new GameRoom();
-            tempRoom.EnterPlayer(new User());
-            tempRoom.EnterPlayer(new User());
-            tempRoom.EnterPlayer(new User());
-
-            tempRoom.InitializeGame();
-            for (int i = 0; i < tempRoom.players.Count; i++) {
-                String str = String.Format("Player{0} :", i);
-                for (int j = 0; j < tempRoom.players[i].hand.Count; j++)
-                    str += tempRoom.players[i].hand[j].toString() + "  ";
-                Console.WriteLine(str);
-            }
-            Console.WriteLine("First Card: " + tempRoom.lastCard.toString());
-            string deck = "Unused:";
-            while (tempRoom.unusedDeck.Count > 0)
-                deck += tempRoom.unusedDeck.Pop().toString() + "  ";
-            Console.WriteLine(deck);
         }
         public void Dispose()
         {

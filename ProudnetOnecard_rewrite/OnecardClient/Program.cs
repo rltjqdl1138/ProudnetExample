@@ -16,41 +16,105 @@ namespace Client
 
         static User me = new User();
 
+        static int Selected = 0;
+        static int turn;
+        static int PlayerID;
+        static GameCard LastCard = new GameCard();
+        static GamePlayer[] players = new GamePlayer[4];
+        static List<GameCard> gameCards = new List<GameCard>();
+
+
         static void InitializeStub()
         {
             S2CStub.ResponseLogin = (HostID remote, RmiContext rmiContext, User user) =>
             {
+                lock (g_critSec)
+                {
+                    isLoggedin = true;
+                    me = user;
+                }
                 return true;
             };
 
             S2CStub.ResponseEnter = (HostID remote, RmiContext rmiContext, int RoomNumber, int playerID) =>
             {
+                lock (g_critSec)
+                {
+                    if (RoomNumber == 0)
+                    {
+                        Console.WriteLine("Cannot Enter the room");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Enter Room {0}", RoomNumber);
+                        me.RoomNumber = RoomNumber;
+                        PlayerID = playerID;
+                    }
+                }
                 return true;
             };
             S2CStub.ResponseDraw = (HostID remote, RmiContext rmiContext, List<GameCard> hand) =>
             {
+                lock (g_critSec)
+                {
+                    gameCards = hand;
+                }
+                Draw();
                 return true;
             };
 
             S2CStub.ChangeHand = (HostID remote, RmiContext rmiContext,int playerID, int count) =>
             {
+                int current = players[playerID].hand.Count();
+                if (current < count)
+                    for (int i = 0; i < count - current; i++)
+                        players[playerID].hand.Add(new GameCard());
+                else
+                    players[playerID].hand.RemoveAt(count);
+
+                Draw();
                 return true;
             };
             S2CStub.ChangeLastCard = (HostID remote, RmiContext rmiContext, GameCard card) =>
             {
+                LastCard = card;
+                if (gameCards[Selected].toNumber() == card.toNumber())
+                    gameCards.RemoveAt(Selected);
+
+                Draw();
                 return true;
             };
             S2CStub.ChangeTurn = (HostID remote, RmiContext rmiContext, int playerID) =>
             {
+                turn = playerID;
+                Draw();
                 return true;
             };
 
             S2CStub.NotifyStartGame = (HostID remote, RmiContext rmiContext, int firstPlayer, GameCard firstCard) =>
             {
+                lock (g_critSec)
+                {
+                    isPlaying = true;
+                    turn = firstPlayer;
+                    LastCard = firstCard;
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        players[i] = new GamePlayer();
+                        for (int j = 0; j < 7; j++)
+                            players[i].hand.Add(new GameCard());
+                    }
+                }
+                Draw();
                 return true;
             };
             S2CStub.NotifyEndGame = (HostID remote, RmiContext rmiContext, int winnerID) =>
             {
+                isPlaying = false;
+                Draw();
+                Console.WriteLine("\nPlayer {0} Win!", winnerID);
+
                 return true;
             };
         }
@@ -101,13 +165,44 @@ namespace Client
         static void Draw()
         {
             Console.Clear();
+            if (!isPlaying)
+            {
+                Console.WriteLine("Ready..");
+                return;
+            }
+
+            Console.WriteLine("Player {0}'s turn", turn);
+            for (int i = 0; i < 4; i++)
+            {
+                Console.Write("{0} Player {1}: ", turn == i ? "▶" : "  ", i);
+                printHand(i);
+            }
+            Console.WriteLine("\n\n\tCard:{0}\n\n", LastCard.toString());
+
+            printHand(PlayerID);
+            string select = "";
+            for (int i = 0; i < Selected; i++)
+            {
+                select += "     ";
+            }
+            select += "▲";
+
+            Console.WriteLine(select);
         }
 
         static void printHand(int playerID)
         {
+            var Cards = playerID == PlayerID ? gameCards : players[playerID].hand;
+            string output = "";
+            for (int i = 0; i < Cards.Count; i++)
+                output += Cards[i].toString() + "  ";
+
+            Console.WriteLine(output);
         }
         static void PlayCard()
         {
+            if (turn == PlayerID)
+                C2SProxy.PlayCard(HostID.HostID_Server, RmiContext.ReliableSend, gameCards[Selected]);
         }
         static void Main(string[] args)
         {
@@ -162,13 +257,37 @@ namespace Client
             }
 
             // Playing
-            ConsoleKeyInfo keyinfo;
-            int i = 1;
             while (keepWorkerThread)
             {
                 if (Console.KeyAvailable)
                 {
-                   
+                    switch (Console.ReadKey(true).Key)
+                    {
+                        case ConsoleKey.Spacebar:
+                            if (!isPlaying)
+                                C2SProxy.Start(HostID.HostID_Server, RmiContext.ReliableSend);
+                            else
+                                C2SProxy.DrawCard(HostID.HostID_Server, RmiContext.ReliableSend);
+                            break;
+                        case ConsoleKey.UpArrow:
+                            break;
+                        case ConsoleKey.DownArrow:
+                            break;
+                        case ConsoleKey.LeftArrow:
+                            if (Selected > 0)
+                            {
+                                Selected--;
+                                Draw();
+                            }
+                            break;
+                        case ConsoleKey.RightArrow:
+                            Selected++;
+                            Draw();
+                            break;
+                        case ConsoleKey.Enter:
+                            PlayCard();
+                            break;
+                    }
                 }
                 System.Threading.Thread.Sleep(30);
             }

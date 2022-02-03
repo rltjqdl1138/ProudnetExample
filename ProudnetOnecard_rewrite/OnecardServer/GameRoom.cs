@@ -5,6 +5,7 @@ namespace OnecardServer
 {
 	public class GameRoom
 	{
+		object g_critSec = new object();
 		public int status;
 		public int turn;
 
@@ -16,13 +17,16 @@ namespace OnecardServer
 
 		public bool EnterPlayer(User user)
 		{
-			int numPlayer = players.Count();
-			if (numPlayer >= 4) return false;
+            lock (g_critSec)
+            {
+				int numPlayer = players.Count();
+				if (numPlayer >= 4) return false;
 
-			GamePlayer newPlayer = new GamePlayer(user);
+				GamePlayer newPlayer = new GamePlayer(user);
 
-			players.Add(newPlayer);
-			return true;
+				players.Add(newPlayer);
+				return true;
+			}
 		}
 		public bool InitializeGame()
 		{
@@ -89,21 +93,32 @@ namespace OnecardServer
 		{
 			status = 0;
 		}
-
+		public int getCurrentTurn()
+        {
+            lock (g_critSec)
+            {
+				return turn;
+			}
+		}
 		public void setNextTurn()
 		{
-			if (++turn == players.Count())
-				turn = 0;
+			lock (g_critSec)
+			{
+				if (++turn == players.Count())
+					turn = 0;
+			}
 		}
 		public int DrawHand()
 		{
 			GameCard gameCard = unusedDeck.Pop();
+			int turn = getCurrentTurn();
 			players[turn].hand.Add(gameCard);
 			return 1;
 		}
 		public bool PlayHand(int hand)
 		{
 			// 핸드 개수 확인
+			int turn = getCurrentTurn();
 			int currentHand = players[turn].hand.Count();
 			if (hand < 0 || hand >= currentHand)
 				return false;
